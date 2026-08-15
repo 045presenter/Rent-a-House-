@@ -3,7 +3,8 @@ services:
     name: rent-a-house-api
     env: node
     branch: main
-    buildCommand: corepack enable && cd apps/api && pnpm install
+    # Install workspace deps at repo root so shared packages are available
+    buildCommand: corepack enable && pnpm -w install
     startCommand: cd apps/api && pnpm start
     healthCheckPath: /health
 
@@ -11,5 +12,5 @@ services:
     name: rent-a-house-web
     env: static
     branch: main
-    buildCommand: corepack enable && cd apps/web && pnpm install && pnpm run build
+    buildCommand: corepack enable && pnpm -w install && pnpm --filter web run build
     staticPublishPath: apps/web/dist
