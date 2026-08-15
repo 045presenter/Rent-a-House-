@@ -7,6 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "prestart": "corepack enable && pnpm -w install || pnpm install",
     "dev": "node -r dotenv/config src/main.js",
     "start": "node src/main.js"
   },
