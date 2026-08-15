@@ -3,7 +3,6 @@ services:
     name: rent-a-house-api
     env: node
     branch: main
-    plan: free
     buildCommand: corepack enable && cd apps/api && pnpm install
     startCommand: cd apps/api && pnpm start
     healthCheckPath: /health
@@ -12,6 +11,5 @@ services:
     name: rent-a-house-web
     env: static
     branch: main
-    plan: free
     buildCommand: corepack enable && cd apps/web && pnpm install && pnpm run build
     staticPublishPath: apps/web/dist
