@@ -1,67 +1,69 @@
+// apps/api/src/main.js
+// Tolerant dotenv loading (optional). Does not throw if dotenv or .env is missing.
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
 import routes from './routes/index.js';
-import { errorMiddleware } from './middleware/error.js';
-import { globalRateLimit } from './middleware/global-rate-limit.js';
+import errorMiddleware from './middleware/error.js';
+import globalRateLimit from './middleware/global-rate-limit.js';
 import logger from './utils/logger.js';
 import { BodyLimit } from './constants/common.js';
 
+// Try to load dotenv (non-blocking). Works in ESM; failure is ignored.
+import('dotenv')
+  .then((mod) => {
+    try { mod.config(); }
+    catch (e) { /* ignore */ }
+  })
+  .catch(() => {
+    // dotenv not available or failed to import — ignore in production
+  });
+
 const app = express();
 
+// Trust proxy (Render sets X-Forwarded-For); only enable if you are behind a proxy
 app.set('trust proxy', true);
 
-process.on('uncaughtException', (error) => {
-	logger.error('Uncaught exception:', error);
+// Basic process-level error handlers (log and continue/fail gracefully)
+process.on('uncaughtException', (err) => {
+  try { logger.error('Uncaught exception: ', err); } catch (e) { console.error(err); }
+  // optional: process.exit(1);
 });
-  
-process.on('unhandledRejection', (reason, promise) => {
-	logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-});
-
-process.on('SIGINT', async () => {
-	logger.info('Interrupted');
-	process.exit(0);
+process.on('unhandledRejection', (reason) => {
+  try { logger.error('Unhandled Rejection: ', reason); } catch (e) { console.error(reason); }
 });
 
-process.on('SIGTERM', async () => {
-	logger.info('SIGTERM signal received');
-
-	await new Promise(resolve => setTimeout(resolve, 3000));
-
-	logger.info('Exiting');
-	process.exit();
-});
-
+// Middlewares
 app.use(helmet());
 app.use(cors({
-	origin: process.env.CORS_ORIGIN,
-	credentials: true,
+  origin: process.env.CORS_ORIGIN || true,
+  credentials: true
 }));
 app.use(morgan('combined'));
-app.use(globalRateLimit);
-app.use(express.json({
-	limit: BodyLimit,
-}));
-app.use(express.urlencoded({ 
-	extended: true,
-	limit: BodyLimit,
-}));
+app.use(globalRateLimit());
+app.use(express.json({ limit: BodyLimit }));
 
-app.use('/', routes());
+// Routes
+app.use('/', routes);
 
-app.use(errorMiddleware);
+// Error handler (ensure this is after routes)
+if (typeof errorMiddleware === 'function') {
+  app.use(errorMiddleware);
+}
 
+// 404 handler
 app.use((req, res) => {
-	res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: 'Route not found' });
 });
 
-const port = process.env.PORT || 3001;
-
+// Bind to Render port or fallback for local testing
+const port = parseInt(process.env.PORT, 10) || 3001;
 app.listen(port, () => {
-	logger.info(`🚀 API Server running on http://localhost:${port}`);
+  try { logger.info(`API Server listening on port ${port}`); } catch (e) { console.log(`API Server listening on port ${port}`); }
+  // Helpful console.log for Render build logs visibility
+  console.log(`API Server running on http://localhost:${port}`);
 });
 
 export default app;
