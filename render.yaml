@@ -3,14 +3,15 @@ services:
     name: rent-a-house-api
     env: node
     branch: main
-    # Install workspace deps at repo root so shared packages are available
-    buildCommand: corepack enable && pnpm -w install
-    startCommand: cd apps/api && pnpm start
+    # Prepare pnpm and install workspace deps during build (not at runtime)
+    buildCommand: corepack enable && corepack prepare pnpm@latest --activate && pnpm -w install
+    # Start the API with node directly so no tooling is downloaded at runtime
+    startCommand: cd apps/api && node src/main.js
     healthCheckPath: /health
 
   - type: web
     name: rent-a-house-web
     env: static
     branch: main
-    buildCommand: corepack enable && pnpm -w install && pnpm --filter web run build
+    buildCommand: corepack enable && corepack prepare pnpm@latest --activate && pnpm -w install && pnpm --filter web run build
     staticPublishPath: apps/web/dist
