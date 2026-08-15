@@ -9,11 +9,11 @@ services:
     startCommand: pnpm start
     healthCheckPath: /health
 
-  - type: static
+  - type: web
     name: rent-a-house-web
     env: static
     branch: main
     root: apps/web
     plan: free
     buildCommand: corepack enable && pnpm -w install && pnpm --filter web run build
-    publishPath: dist
+    staticPublishPath: dist
