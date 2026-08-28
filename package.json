@@ -9,7 +9,8 @@
     "preview": "npm run start -w apps/web"
   },
   "workspaces": [
-    "apps/web"
+    "apps/web",
+    "apps/api"
   ],
   "engines": {
     "node": ">=20.19.0"

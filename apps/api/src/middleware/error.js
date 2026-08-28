@@ -1,6 +1,6 @@
 import logger from '../utils/logger.js';
 
-export function errorMiddleware(error, req, res, next) {
+export default function errorMiddleware(error, req, res, next) {
   if (res.headersSent) {
     return next(error);
   }
