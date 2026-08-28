@@ -1,5 +1,4 @@
 // apps/api/src/main.js
-// Tolerant dotenv loading (optional). Does not throw if dotenv or .env is missing.
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,15 +10,14 @@ import globalRateLimit from './middleware/global-rate-limit.js';
 import logger from './utils/logger.js';
 import { BodyLimit } from './constants/common.js';
 
-// Try to load dotenv (non-blocking). Works in ESM; failure is ignored.
-import('dotenv')
-  .then((mod) => {
-    try { mod.config(); }
-    catch (e) { /* ignore */ }
-  })
-  .catch(() => {
-    // dotenv not available or failed to import — ignore in production
-  });
+// Load dotenv synchronously (works better with Node.js ESM)
+try {
+  const dotenv = await import('dotenv');
+  dotenv.config();
+} catch (e) {
+  // dotenv not available or failed — ignore in production
+  logger.warn('dotenv not loaded (this is normal in production)');
+}
 
 const app = express();
 

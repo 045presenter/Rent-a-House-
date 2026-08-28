@@ -5,8 +5,8 @@ services:
     branch: main
     # Prepare pnpm and install workspace deps during build (not at runtime)
     buildCommand: corepack enable && corepack prepare pnpm@latest --activate && pnpm -w install
-    # Start the API with node directly so no tooling is downloaded at runtime
-    startCommand: cd apps/api && node src/main.js
+    # Start the API with experimental flag for ESM/CommonJS interop
+    startCommand: cd apps/api && node --experimental-require-module src/main.js
     healthCheckPath: /health
 
   - type: web
